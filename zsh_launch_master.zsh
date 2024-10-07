@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-alias launch_1='launch_master_main'
+alias launch='launch_master_main'
 
 declare launch_master_lnks=''
 declare launch_master_launch_list=''
@@ -40,10 +40,11 @@ function launch_master_main() {
     case '$1' in
       '-o'|'--opts')
         shift
-	launch_master_opts $@
+	      launch_master_opts $@
       ;;
       *)
-	launch_master_launch $@
+	      launch_master_launch $@
+        shift
       ;;
     esac
   done
@@ -82,13 +83,17 @@ function launch_master_opts() {
 
 function launch_master_launch() {
   while (($# > 0)); do
-    if [ ${1##*.} = "launch_list" ]; then
-      while LFS= read -r line; do
-        launch_master_launch $line
-      done < "./launch_lists/"$1
-      shift
+    if [[ ${1##*.} == "launch_list" ]]; then
+      if [[ -f $launch_master_launch_list"/"$1 ]]; then
+        while LFS= read -r line; do
+          launch_master_launch $line
+        done < $launch_master_launch_list"/"$1
+        shift
+      else
+        echo "No such launch list: "$1
+      fi
     else
-      local app_lnk="./links/"$1".lnk"
+      local app_lnk=$launch_master_lnks"/"$1".lnk"
       if [[ -f $app_lnk ]]; then
         echo "Launching "$1".lnk..."
         nohup $launch_master_open_cmd $app_lnk &>/dev/null
