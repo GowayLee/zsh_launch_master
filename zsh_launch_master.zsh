@@ -62,11 +62,11 @@ function LAUNCH_MASTER_FUNC_opts() {
 function LAUNCH_MASTER_FUNC_launch() {
   while (($# > 0)); do
     if [[ $1 == *"." ]]; then
-      local list_path=${LM_VAR["dir_launch_list"]}
-      if [[ -f $list_path'/'$1'launch_list' ]]; then
+      local list_path=${LM_VAR["dir_launch_list"]}"/"$1"launch_list"
+      if [[ -f $list_path ]]; then
         while LFS= read -r line; do
-          $LM_FUNC'launch' $line
-        done < ${list_path}$1"launch_list"
+          $LM_FUNC'_launch' $line
+        done < $list_path
         shift
       else
         echo "No such launch list: "$1"launch_list"
