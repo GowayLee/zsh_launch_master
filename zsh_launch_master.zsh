@@ -25,8 +25,12 @@ if [[ -f $HOME/.launch_master/.launch_masterrc ]]; then # check if launch_master
 				launch_master_open_cmd=${line##*:}
 				continue
 			;;
+			' ')
+				echo "zsh_launch_master: Empty value of item \""${line%:*}"\" in .launch_masterrc"
+				continue
+			;;
 			*)
-				echo "Unknown item \""${line%:*}"\" in .launch_masterrc"
+				echo "zsh_launch_master: Undefined item \""${line%:*}"\" in .launch_masterrc"
 				continue
 			;;
 		esac
@@ -36,27 +40,17 @@ else # first open, process the initialize steps
 fi
 
 function launch_master_main() {
-  while (($# > 0)); do
-    case '$1' in
-      '-o'|'--opts')
-        shift
-	      launch_master_opts $@
-      ;;
-      *)
-	      launch_master_launch $@
-        shift
-      ;;
-    esac
-  done
+  if [[ $1 == "-o" || $1 == "-opts" ]]; then
+	shift
+	launch_master_opts $@
+  else
+	launch_master_launch $@
+  fi
 }
 
 function launch_master_opts() {
   while (($# > 0)); do
     case '$1' in
-      '--launch') # launch applications
-        echo 'Option -a with value $2'
-        shift 2
-      ;;
       '-l'|'--list') # list available applications
         echo 'Option -a with value $2' 
         shift 2
@@ -83,14 +77,14 @@ function launch_master_opts() {
 
 function launch_master_launch() {
   while (($# > 0)); do
-    if [[ ${1##*.} == "launch_list" ]]; then
-      if [[ -f $launch_master_launch_list"/"$1 ]]; then
+    if [[ $1 == *"." ]]; then
+      if [[ -f $launch_master_launch_list"/"$1"launch_list" ]]; then
         while LFS= read -r line; do
           launch_master_launch $line
-        done < $launch_master_launch_list"/"$1
+        done < $launch_master_launch_list"/"$1"launch_list"
         shift
       else
-        echo "No such launch list: "$1
+        echo "No such launch list: "$1"launch_list"
       fi
     else
       local app_lnk=$launch_master_lnks"/"$1".lnk"

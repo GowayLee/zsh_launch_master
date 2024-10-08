@@ -3,7 +3,7 @@ This is a plugin for Zsh that allows you to launch applications with a single co
 
 ## Features
 - [x] Launch applications with a single command
-- [ ] Launch lists
+- [x] Launch list of applications
 - [ ] Customize Application Launch Command
   - [ ] Quiet Mode
   - [ ] Customize greeting message
