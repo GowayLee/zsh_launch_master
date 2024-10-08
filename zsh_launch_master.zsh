@@ -8,8 +8,6 @@ export LM_HOME
 export LM_VAR
 export LM_FUNC
 
-alias launch=$LM_FUNC'_main'
-
 # init steps
 if [[ -f $HOME"/.launch_master/.launch_masterrc" ]]; then # check if launch_master is already initialized
 	source $LM_HOME"/config_parser.zsh" $HOME"/.launch_master/.launch_masterrc"

@@ -22,3 +22,4 @@ function LAUNCH_MASTER_FUNC_parse_config() {
 }
 
 $LM_FUNC'_parse_config' $1 $2
+alias ${LM_VAR["sys_alias"]}=$LM_FUNC'_main'
