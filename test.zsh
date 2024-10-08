@@ -1,6 +1,4 @@
 #!/bin/zsh
 
-echo $(pwd)
-echo $0
-echo $(readlink -f $0)
-echo $(dirname $(readlink -f $0))
+echo $HOME
+cp /c/Unix_env/UserApp/*.lnk ~/.launch_master/launch_master_lnks

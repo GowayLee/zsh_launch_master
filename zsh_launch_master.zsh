@@ -1,56 +1,39 @@
 #!/bin/zsh
 
-alias launch='launch_master_main'
+declare -r LM_HOME=$(dirname $(readlink -f $0))
+declare -A LM_VAR # association array for launch_master variables
+declare -r LM_FUNC="LAUNCH_MASTER_FUNC" # namespace for launch_master functions
 
-declare launch_master_lnks=''
-declare launch_master_launch_list=''
-declare launch_master_open_cmd=''
+export LM_HOME
+export LM_VAR
+export LM_FUNC
+
+alias launch=$LM_FUNC'_main'
 
 # init steps
-if [[ -f $HOME/.launch_master/.launch_masterrc ]]; then # check if launch_master is already initialized
-  while LFS= read -r line; do
-		if [[ $line == \#* || $line == +([[:space:]]) ]]; then # skip comment line
-			continue
-		fi
-    case ${line%:*} in
-    	'launch_master_lnks')
-				launch_master_lnks=${line##*:}
-				continue
-			;;
-			'launch_master_launch_list')
-				launch_master_launch_list=${line##*:}
-				continue
-			;;
-			'launch_master_open_cmd')
-				launch_master_open_cmd=${line##*:}
-				continue
-			;;
-			' ')
-				echo "zsh_launch_master: Empty value of item \""${line%:*}"\" in .launch_masterrc"
-				continue
-			;;
-			*)
-				echo "zsh_launch_master: Undefined item \""${line%:*}"\" in .launch_masterrc"
-				continue
-			;;
-		esac
-	done < $HOME"/.launch_master/.launch_masterrc"
+if [[ -f $HOME"/.launch_master/.launch_masterrc" ]]; then # check if launch_master is already initialized
+	source $LM_HOME"/config_parser.zsh" $HOME"/.launch_master/.launch_masterrc"
 else # first open, process the initialize steps
-	source $(dirname $(readlink -f $0))/launch_master_init.zsh
+	source $LM_HOME"/auto_config.zsh" --init
 fi
 
-function launch_master_main() {
+if [[ $? -ne 0 ]]; then
+	echo "zsh_launch_master: Error in launch_master initialization."
+	return 1
+fi
+
+function LAUNCH_MASTER_FUNC_main() {
   if [[ $1 == "-o" || $1 == "-opts" ]]; then
-	shift
-	launch_master_opts $@
+		shift
+		$LM_FUNC'_opts' $@
   else
-	launch_master_launch $@
+		$LM_FUNC'_launch' $@
   fi
 }
 
-function launch_master_opts() {
+function LAUNCH_MASTER_FUNC_opts() {
   while (($# > 0)); do
-    case '$1' in
+    case $1 in
       '-l'|'--list') # list available applications
         echo 'Option -a with value $2' 
         shift 2
@@ -65,32 +48,36 @@ function launch_master_opts() {
       ;;
       '-h'|'--help') # display help
         shift
-          
+      ;;
+      '--restore-defaults')
+        source $LM_HOME"/auto_config.zsh" --restore-defaults
+        shift
       ;;
       *)
         echo 'Unknown option: $1'
-        exit 1
+        return 1
       ;;
     esac
   done
 }
 
-function launch_master_launch() {
+function LAUNCH_MASTER_FUNC_launch() {
   while (($# > 0)); do
     if [[ $1 == *"." ]]; then
-      if [[ -f $launch_master_launch_list"/"$1"launch_list" ]]; then
+      local list_path=${LM_VAR["dir_launch_list"]}
+      if [[ -f $list_path'/'$1'launch_list' ]]; then
         while LFS= read -r line; do
-          launch_master_launch $line
-        done < $launch_master_launch_list"/"$1"launch_list"
+          $LM_FUNC'launch' $line
+        done < ${list_path}$1"launch_list"
         shift
       else
         echo "No such launch list: "$1"launch_list"
       fi
     else
-      local app_lnk=$launch_master_lnks"/"$1".lnk"
+      local app_lnk=${LM_VAR["dir_lnks"]}"/"$1".lnk"
       if [[ -f $app_lnk ]]; then
         echo "Launching "$1".lnk..."
-        nohup $launch_master_open_cmd $app_lnk &>/dev/null
+        nohup ${LM_VAR["sys_open_cmd"]} $app_lnk &>/dev/null
       else
         echo "No such application: "$1".lnk"
       fi
