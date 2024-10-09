@@ -159,7 +159,7 @@ function LAUNCH_MASTER_FUNC_auto_config_restore_defaults() {
     echo
   fi
 
-
+  unset -f $LM_FUNC'_get_input_path'
   $LM_FUNC'_auto_config' --restore-defaults $opts
 }
 
@@ -168,19 +168,20 @@ case $1 in
   '--init')
     echo "I can't find .launch_master/ or .launch_masterrc in "$HOME", maybe it's the first time to boot zsh_launch_master.\nI will try to automatically init launch_master for you...\n"
     $LM_FUNC'_auto_config' --init
-    return 0
   ;;
   '--restore-defaults')
     echo -n "WARNING: This will delete all your custom settings and restore to default. Are you sure (⊙o⊙)? ----- (y/n)"
     read answer
     if [[ $answer != 'y' ]]; then
       echo "Action reject\nBye~Bye~"
-      return 0
+    elif [[ $answer == 'y' ]]; then
+      $LM_FUNC'_auto_config_restore_defaults'
     fi
-    $LM_FUNC'_auto_config_restore_defaults'
-    return 0
   ;;
   *)
     echo "Call from outter scope"
   ;;
 esac
+
+unset -f $LM_FUNC'_auto_config'
+unset -f $LM_FUNC'_auto_config_restore_defaults'
